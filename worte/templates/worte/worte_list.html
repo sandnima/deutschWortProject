@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Home
+{% endblock title %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12 col-sm-4">
+            <h3>Substantiv</h3>
+            <hr>
+            {% for substantiv in substantiv_list %}
+                <div class="pb-2">
+                    <span class="me-1"
+                          style="color:{% if substantiv.artikel == 'M' %}#39A2DB{% elif substantiv.artikel == 'F' %}#FF2626{% elif substantiv.artikel == 'N' %}#66DE93{% endif %}">
+                        <i class="bi bi-record-circle-fill"></i>
+                    </span>
+                    <span>{{ substantiv.substantiv }} {{ substantiv.get_plural_display }}</span>
+                </div>
+            {% endfor %}
+            <a href="{% url 'worte:substantiv-list' %}" class="text-decoration-none">Mehr...</a>
+        </div>
+        <div class="col-12 col-sm-4">
+            <h3>Adjektiv</h3>
+            <hr>
+            {% for adjektiv in adjektiv_list %}
+                <div class="pb-2">
+                    <span>{{ adjektiv.adjektiv }}</span>
+                </div>
+            {% endfor %}
+            <a href="{% url 'worte:adjektiv-list' %}" class="text-decoration-none">Mehr...</a>
+        </div>
+        {#        <div class="col-12 col-sm-4">#}
+        {#            {% for adjektiv in adjektiv_list %}#}
+        {#                <span>{{ adjektiv.adjektiv }}</span>#}
+        {#            {% endfor %}#}
+        {#        </div>#}
+    </div>
+
+
+{% endblock content %}

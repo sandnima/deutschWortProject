@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Substantiv
+{% endblock title %}
+
+{% block content %}
+    {% for substantiv in substantiv_list %}
+        <div class="pb-2">
+{#                <span class="d-inline-block"#}
+{#                      style="background-color:{% if substantiv.artikel == 'M' %}#DBE6FD{% elif substantiv.artikel == 'F' %}#FFBBCC{% elif substantiv.artikel == 'N' %}#66DE93{% endif %}">#}
+{#                    <span class="d-inline-block" style="width: 3ch;">#}
+{#                        {{ substantiv.get_artikel_display }}#}
+{#                    </span>#}
+{#                </span>#}
+                <span class="me-1" style="color:{% if substantiv.artikel == 'M' %}#39A2DB{% elif substantiv.artikel == 'F' %}#FF2626{% elif substantiv.artikel == 'N' %}#66DE93{% endif %}">
+                    <i class="bi bi-record-circle-fill"></i>
+                </span>
+            <span>{{ substantiv.substantiv }} {{ substantiv.get_plural_display }}</span>
+        </div>
+    {% endfor %}
+{% endblock content %}

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Adjektiv
+{% endblock title %}
+
+{% block content %}
+    {% for adjektiv in adjektiv_list %}
+        <div class="pb-2">
+            <span>{{ adjektiv.adjektiv }}</span>
+        </div>
+    {% endfor %}
+{% endblock content %}
