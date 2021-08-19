@@ -16,14 +16,15 @@
                 <i class="bi bi-record-circle-fill"></i>
             </span>
             <span class="fs-3">{{ random_word.substantiv }}</span>
+            <input type="hidden" id="pk" value="{{ random_word.pk }}">
             <span class="fs-3 ms-2 correct d-none">{{ random_word.get_plural_display }}</span>
             <span class="fs-3 ms-2 sample"> -</span>
         </div>
         <div class="d-flex justify-content-center flex-column">
             <button type="button" id="view" class="btn btn-lg btn-outline-secondary col-4 mb-3 mx-auto">Sehen</button>
-            <div class="btn-group btn-group-lg col-4 mx-auto" role="group" aria-label="">
-                <button type="button" class="btn btn-outline-secondary">Falsch</button>
-                <button type="button" class="btn btn-secondary">Stimmt</button>
+            <div id="next-btns" class="btn-group btn-group-lg col-4 mx-auto d-none" role="group" aria-label="">
+                <button type="button" id="falsch" class="btn btn-outline-secondary">Falsch</button>
+                <button type="button" id="stimmt" class="btn btn-secondary">Stimmt</button>
             </div>
         </div>
     </div>
@@ -32,11 +33,30 @@
     <script>
     function correct () {
         $('.correct').removeClass('d-none')
+        $('#next-btns').removeClass('d-none')
         $('.sample').addClass('d-none')
     }
+
+    function add_stimmt () {
+        let pk = $('#pk').val()
+        $.ajax({
+            url: "{% url 'profiles:add-stimmt' %}",
+            method: "POST",
+            data: { pk: pk },
+        })
+        .done(function () {
+            {#alert("Done")#}
+        })
+    }
+
     $('#view').click(function () {
         correct()
     })
+
+    $('#stimmt').click(function () {
+        add_stimmt()
+    })
+
     $(document).keydown(function (event) {
         if (event.which === 32) {
             if ($('.correct').hasClass('d-none')) {
