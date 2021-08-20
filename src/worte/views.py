@@ -1,8 +1,11 @@
+import random
 from django.shortcuts import render
 from django.views.generic import View, ListView
 from django.shortcuts import get_object_or_404
+from django.db.models import Sum
 
 from worte.models import Substantiv, Adjektiv
+from profiles.models import Profile, StimmtHistory
 
 
 class WorteView(View):
@@ -36,35 +39,57 @@ class RandomChooseView(View):
     template_name = 'worte/random.html'
     
     def get(self, request):
-        words = Substantiv.objects.all().values_list('id', flat=True)
-        random = get_object_or_404(Substantiv, pk=weighted_choice(words, history={}))
+        all_words = Substantiv.objects.all().values_list('id', flat=True)
+        profile = Profile.objects.get(user=request.user)
+        history_words = StimmtHistory.objects.filter(user=profile)
+        random_word = get_object_or_404(Substantiv, pk=weighted_choice(all_words=all_words, history=history_words))
+        
+        # TESTING RANDOMNESS
+        # def generator(bar):
+        #     for k in range(bar):
+        #         yield k
+        # test_bar = generator(100)
+        # test_result = dict()
+        # list_gened = weight_list_generator(all_words=all_words, history=history_words)
+        #
+        # for n in range(8):
+        #     t = list_gened.__next__()
+        #     print(Substantiv.objects.get(pk=t[0]), t[1])
+        #
+        # print('---------------------')
+        # for n in test_bar:
+        #     random = get_object_or_404(Substantiv, pk=weighted_choice(all_words=all_words, history=history_words))
+        #     # random = weight_list_generator(all_words=all_words, history=history_words)
+        #     test_result[random] = test_result.get(random, 0) + 1
+        # test_result = dict(sorted(test_result.items(), key=lambda item: item[1], reverse=True))
+        # for w, r in test_result.items():
+        #     print(w, r/100)
         
         context = {
-            'random_word': random,
+            'random_word': random_word,
+            'history_words': history_words,
         }
         return render(request, template_name=self.template_name, context=context)
 
 
-def weight_list_generator(words, history):
+def weight_list_generator(all_words, history=None):
     base = 1
-    for word, occ in history.items():
+    for history_word in history:
+        occ = history_word.mal
         base = base + occ
-    for word in words:
+    for word_id in all_words:
         probability = base
-        if word in history:
-            probability = base - history[word]
-        yield word, probability
+        if word_id in history.values_list('wort', flat=True):
+            probability = base - history.get(wort_id=word_id).mal
+        yield word_id, probability
 
 
-def weighted_choice(words, history=()):
-    import random
-    
+def weighted_choice(all_words, history=()):
     total = 1
-    for occ in history.values():
-        total = total + occ
-    total = total * len(words) - (total - 1)
-    
-    for word, probability in weight_list_generator(words, history):
+    for occ in history:
+        total = total + occ.mal
+    total = total * len(all_words) - (total - 1)
+    for word, probability in weight_list_generator(all_words, history):
         rand = random.random()
         prob = 1 / total * probability
         total = total - probability

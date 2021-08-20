@@ -14,7 +14,8 @@ class AddStimmt(LoginRequiredMixin, View):
     def post(self, request):
         wort_pk = request.POST.get("pk")
         wort_obj = get_object_or_404(Substantiv, pk=wort_pk)
-        stimmt_obj = StimmtHistory.objects.get_or_create(wort=wort_obj)[0]
+        profile = Profile.objects.get(user=request.user)
+        stimmt_obj = StimmtHistory.objects.get_or_create(user=profile, wort=wort_obj)[0]
         stimmt_obj.mal += 1
         stimmt_obj.save()
         return HttpResponse('successful')

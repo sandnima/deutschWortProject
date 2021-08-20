@@ -6,15 +6,16 @@
 
 {% block content %}
     <div class="d-flex flex-column mt-4">
+
         <div class="d-flex justify-content-center flex-row mb-5">
-            <span class="me-2 fs-3 correct d-none"
-                      style="color:{% if random_word.artikel == 'M' %}#39A2DB{% elif random_word.artikel == 'F' %}#FF2626{% elif random_word.artikel == 'N' %}#66DE93{% endif %}">
-                <i class="bi bi-record-circle-fill"></i>
-            </span>
+        <span class="me-2 fs-3 correct d-none"
+              style="color:{% if random_word.artikel == 'M' %}#39A2DB{% elif random_word.artikel == 'F' %}#FF2626{% elif random_word.artikel == 'N' %}#66DE93{% endif %}">
+            <i class="bi bi-record-circle-fill"></i>
+        </span>
             <span class="me-2 fs-3 sample"
-                      style="color:rgba(0,0,0,0.5);">
-                <i class="bi bi-record-circle-fill"></i>
-            </span>
+                  style="color:rgba(0,0,0,0.5);">
+            <i class="bi bi-record-circle-fill"></i>
+        </span>
             <span class="fs-3">{{ random_word.substantiv }}</span>
             <input type="hidden" id="pk" value="{{ random_word.pk }}">
             <span class="fs-3 ms-2 correct d-none">{{ random_word.get_plural_display }}</span>
@@ -27,48 +28,51 @@
                 <button type="button" id="stimmt" class="btn btn-secondary">Stimmt</button>
             </div>
         </div>
+        <hr>
+        {% for word in history_words %}
+            <span>{{ word.wort }}: {{ word.mal }}</span>
+        {% endfor %}
+
     </div>
 {% endblock content %}
 {% block extra_body %}
     <script>
-    function correct () {
-        $('.correct').removeClass('d-none')
-        $('#next-btns').removeClass('d-none')
-        $('.sample').addClass('d-none')
-    }
-
-    function add_stimmt () {
-        let pk = $('#pk').val()
-        $.ajax({
-            url: "{% url 'profiles:add-stimmt' %}",
-            method: "POST",
-            data: { pk: pk },
-        })
-        .done(function () {
-            {#alert("Done")#}
-        })
-    }
-
-    $('#view').click(function () {
-        correct()
-    })
-
-    $('#stimmt').click(function () {
-        add_stimmt()
-    })
-
-    $(document).keydown(function (event) {
-        if (event.which === 32) {
-            if ($('.correct').hasClass('d-none')) {
-                correct()
-            }
-            else {
-                location.reload()
-            }
+        function correct() {
+            $('.correct').removeClass('d-none')
+            $('#next-btns').removeClass('d-none')
+            $('.sample').addClass('d-none')
         }
-        else if (event.which === 39) {
-            location.reload()
+
+        function add_stimmt() {
+            let pk = $('#pk').val()
+            $.ajax({
+                url: "{% url 'profiles:add-stimmt' %}",
+                method: "POST",
+                data: {pk: pk},
+            })
+                .done(function () {
+                    location.reload()
+                })
         }
-    })
+
+        $('#view').click(function () {
+            correct()
+        })
+
+        $('#stimmt').click(function () {
+            add_stimmt()
+        })
+
+        $(document).keydown(function (event) {
+            if (event.which === 32) {
+                if ($('.correct').hasClass('d-none')) {
+                    correct()
+                } else {
+                    location.reload()
+                }
+            } else if (!$('.correct').hasClass('d-none') && event.which === 39) {
+                add_stimmt()
+            }
+        })
     </script>
 {% endblock extra_body %}
