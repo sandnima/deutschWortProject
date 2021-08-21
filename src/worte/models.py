@@ -1,3 +1,4 @@
+import re
 from django.db import models
 from django.conf import settings
 
@@ -33,14 +34,20 @@ class Substantiv(models.Model):
         return f'{self.get_artikel_display()} {self.substantiv}'
     
     def save(self, *args, **kwargs):
+        if self.artikel is None:
+            matches = re.findall(r"^(Die|Der|Das|die|der|das)\s(.+)", self.substantiv)
+            if matches:
+                artikel = matches[0][0].capitalize()
+                if artikel == 'Die':
+                    self.artikel = 'F'
+                elif artikel == 'Der':
+                    self.artikel = 'M'
+                elif artikel == 'Das':
+                    self.artikel = 'N'
+                self.substantiv = matches[0][1]
         self.substantiv = self.substantiv.capitalize()
-        if self.plural is None:
-            self.plural = self.substantiv
-        self.plural = self.plural.capitalize()
-        # if self.artikel is None:
-        #     if preg_match_all('/()/', self.substantiv):
-            
-            
+        # if self.plural is None:
+        #     self.plural = self.substantiv
         
         super().save(*args, **kwargs)
 
