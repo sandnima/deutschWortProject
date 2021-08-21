@@ -1,11 +1,11 @@
-import random, sys
+import random, time
+from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.views.generic import View, ListView
-from django.shortcuts import get_object_or_404
-from django.db.models import Sum
+from django.db.models import Min
 
-from worte.models import Substantiv, Adjektiv
 from profiles.models import Profile, StimmtHistory
+from worte.models import Substantiv, Adjektiv
 
 
 class WorteView(View):
@@ -42,12 +42,16 @@ class RandomChooseView(View):
         all_words = Substantiv.objects.all().values_list('id', flat=True)
         profile = Profile.objects.get(user=request.user)
         history_words = StimmtHistory.objects.filter(user=profile)
-        # random_word = get_object_or_404(Substantiv, pk=weighted_choice(all_words=all_words, history=history_words))
         weights = weight_list_generator(all_words=all_words, history=history_words)
-        # print(weights)
         random_word = get_object_or_404(Substantiv, pk=random.choices(population=all_words, weights=weights)[0])
         
         # TESTING RANDOMNESS
+        # tic = time.perf_counter()
+        # for n in range(1000000):
+        #     weights = weight_list_generator(all_words=all_words, history=history_words)
+        # toc = time.perf_counter()
+        # print('TIME MEASURED:', toc - tic)
+        
         # def generator(bar):
         #     for k in range(bar):
         #         yield k
@@ -77,41 +81,34 @@ class RandomChooseView(View):
         return render(request, template_name=self.template_name, context=context)
 
 
+def weight_list_generator(all_words, history=None):
+    base = 1.0
+    adjust = 0
+    history_word_list = history.values_list('wort', flat=True)
+    if len(all_words) == len(history_word_list):
+        try:
+            min_mal = history.order_by('mal').first().mal
+            adjust = min_mal
+        except AttributeError:
+            pass
+    for word_id in all_words:
+        probability = base
+        if word_id in history_word_list:
+            probability = probability / (history.get(wort_id=word_id).mal - adjust + 1)
+        yield probability
+
+
 # def weight_list_generator(all_words, history=None):
 #     base = 1
 #     for history_word in history:
 #         occ = history_word.mal
 #         base = base + occ
+#     weight_list = []
 #     for word_id in all_words:
 #         probability = base
 #         if word_id in history.values_list('wort', flat=True):
 #             probability = base - history.get(wort_id=word_id).mal
-#         yield probability
-
-
-def weight_list_generator(all_words, history=None):
-    base = 1
-    for history_word in history:
-        occ = history_word.mal
-        base = base + occ
-    weight_list = []
-    for word_id in all_words:
-        probability = base
-        if word_id in history.values_list('wort', flat=True):
-            probability = base - history.get(wort_id=word_id).mal
-        weight_list.append(probability)
-    min_weight = min(weight_list) - 1
-    weight_list = [weight-min_weight for weight in weight_list]
-    return weight_list
-
-# def weighted_choice(all_words, history=()):
-#     total = 1
-#     for occ in history:
-#         total = total + occ.mal
-#     total = total * len(all_words) - (total - 1)
-#     for word, probability in weight_list_generator(all_words, history):
-#         rand = random.random()
-#         prob = 1 / total * probability
-#         total = total - probability
-#         if rand < prob:
-#             return word
+#         weight_list.append(probability)
+#     min_weight = min(weight_list) - 1
+#     weight_list = [weight-min_weight for weight in weight_list]
+#     return weight_list

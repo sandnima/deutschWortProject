@@ -18,18 +18,10 @@ class Substantiv(models.Model):
         (DER, 'Der'),
         (DAS, 'Das'),
     ]
-
-    PLURALS = [
-        ('EN', '-en'),
-        ('S', '-s'),
-        ('E', '-e/⸚e'),
-        ('ER', '-er/⸚er'),
-        ('U', '-/⸚'),
-    ]
     
     substantiv = models.CharField(unique=True, max_length=250)
-    artikel = models.CharField(max_length=1, choices=ARTIKEL, default='N')
-    plural = models.CharField(max_length=2, choices=PLURALS, default='U')
+    artikel = models.CharField(max_length=1, choices=ARTIKEL, blank=True, null=True)
+    plural = models.CharField(max_length=250, blank=True, null=True)
     stufe = models.ForeignKey(Stufe, on_delete=models.PROTECT, blank=True, null=True)
     beispiele = models.TextField(blank=True, null=True)
     autor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
@@ -42,6 +34,14 @@ class Substantiv(models.Model):
     
     def save(self, *args, **kwargs):
         self.substantiv = self.substantiv.capitalize()
+        if self.plural is None:
+            self.plural = self.substantiv
+        self.plural = self.plural.capitalize()
+        # if self.artikel is None:
+        #     if preg_match_all('/()/', self.substantiv):
+            
+            
+        
         super().save(*args, **kwargs)
 
 
