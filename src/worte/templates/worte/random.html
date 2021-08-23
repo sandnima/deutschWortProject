@@ -28,11 +28,23 @@
                 <button type="button" id="stimmt" class="btn btn-secondary">Stimmt</button>
             </div>
         </div>
-        <hr>
-        {% for word in history_words %}
-            <span>{{ word.wort }}: {{ word.mal }}</span>
-        {% endfor %}
 
+        <hr>
+
+        <div class="row align-items-start">
+            <div class="col border-end border-3 d-flex flex-column">
+                <span class="h4">Stimmt:</span>
+                {% for word in stimmt_history_words %}
+                    <span>{{ word.wort }}: {{ word.mal }}</span>
+                {% endfor %}
+            </div>
+            <div class="col d-flex flex-column">
+                <span class="h4">Falsche:</span>
+                {% for word in falsch_history_words %}
+                    <span>{{ word.wort }}: {{ word.mal }}</span>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 {% endblock content %}
 {% block extra_body %}
@@ -55,12 +67,28 @@
                 })
         }
 
+        function add_falsch() {
+            let pk = $('#pk').val()
+            $.ajax({
+                url: "{% url 'profiles:add-falsch' %}",
+                method: "POST",
+                data: {pk: pk},
+            })
+                .done(function () {
+                    location.reload()
+                })
+        }
+
         $('#view').click(function () {
             correct()
         })
 
         $('#stimmt').click(function () {
             add_stimmt()
+        })
+
+        $('#falsch').click(function () {
+            add_falsch()
         })
 
         $(document).keydown(function (event) {
@@ -72,6 +100,8 @@
                 }
             } else if (!$('.correct').hasClass('d-none') && event.which === 39) {
                 add_stimmt()
+            } else if (!$('.correct').hasClass('d-none') && event.which === 37) {
+                add_falsch()
             }
         })
     </script>

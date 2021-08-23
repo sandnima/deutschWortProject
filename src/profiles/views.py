@@ -9,26 +9,48 @@ from profiles.models import Profile, StimmtHistory, FalschHistory
 from worte.models import Substantiv
 
 
+# @method_decorator(csrf_exempt, name='dispatch')
+# class AbstractAddToHistoryView(LoginRequiredMixin, View):
+#
+
+
 @method_decorator(csrf_exempt, name='dispatch')
-class AbstractAddToHistoryView(LoginRequiredMixin, View):
-    model = None
-    history_model = None
-    
+class AddStimmt(LoginRequiredMixin, View):
     def post(self, request):
         wort_pk = request.POST.get("pk")
-        wort_obj = get_object_or_404(self.model, pk=wort_pk)
+        wort_obj = get_object_or_404(Substantiv, pk=wort_pk)
         profile = Profile.objects.get(user=request.user)
-        stimmt_obj = self.history_model.objects.get_or_create(user=profile, wort=wort_obj)[0]
-        stimmt_obj.mal += 1
-        stimmt_obj.save()
+        
+        # Check if it exists in FalschHistory
+        falsch_obj = FalschHistory.objects.filter(user=profile, wort=wort_obj)
+        if falsch_obj:
+            if falsch_obj.first().mal == 1:
+                falsch_obj.first().delete()
+            else:
+                falsch_obj.mal -= 1
+                falsch_obj.save()
+        else:
+            stimmt_obj = StimmtHistory.objects.get_or_create(user=profile, wort=wort_obj)[0]
+            stimmt_obj.mal += 1
+            stimmt_obj.save()
+        
         return HttpResponse('successful')
 
 
-class AddStimmt(AbstractAddToHistoryView):
-    model = Substantiv
-    history_model = StimmtHistory
-
-
-class AddFalsch(AbstractAddToHistoryView):
-    model = Substantiv
-    history_model = FalschHistory
+@method_decorator(csrf_exempt, name='dispatch')
+class AddFalsch(LoginRequiredMixin, View):
+    def post(self, request):
+        wort_pk = request.POST.get("pk")
+        wort_obj = get_object_or_404(Substantiv, pk=wort_pk)
+        profile = Profile.objects.get(user=request.user)
+        
+        # Check if it exists in StimmtHistory
+        stimmt_obj = StimmtHistory.objects.filter(user=profile, wort=wort_obj)
+        if stimmt_obj:
+            stimmt_obj.delete()
+        
+        falsch_obj = FalschHistory.objects.get_or_create(user=profile, wort=wort_obj)[0]
+        falsch_obj.mal += 1
+        falsch_obj.save()
+    
+        return HttpResponse('successful')

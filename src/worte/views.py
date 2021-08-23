@@ -1,12 +1,10 @@
 import random, time
-
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.views.generic import View, ListView
-from django.db.models import Min
 
-from profiles.models import Profile, StimmtHistory
+from profiles.models import Profile, StimmtHistory, FalschHistory
 from worte.models import Substantiv, Adjektiv
 
 
@@ -43,9 +41,13 @@ class RandomChooseView(LoginRequiredMixin, View):
     def get(self, request):
         all_words = Substantiv.objects.all().values_list('id', flat=True)
         profile = Profile.objects.get(user=request.user)
-        history_words = StimmtHistory.objects.filter(user=profile)
-        weights = weight_list_generator(all_words=all_words, history=history_words)
-        random_word = get_object_or_404(Substantiv, pk=random.choices(population=all_words, weights=weights)[0])
+        stimmt_history_words = StimmtHistory.objects.filter(user=profile)
+        falsch_history_words = FalschHistory.objects.filter(user=profile)
+        weights = weight_list_generator(all_words=all_words,
+                                        stimmt_history=stimmt_history_words,
+                                        falsch_history=falsch_history_words)
+        word_pk = random.choices(population=all_words, weights=weights)[0]
+        random_word = get_object_or_404(Substantiv, pk=word_pk)
         
         # TESTING RANDOMNESS
         # tic = time.perf_counter()
@@ -78,25 +80,36 @@ class RandomChooseView(LoginRequiredMixin, View):
         
         context = {
             'random_word': random_word,
-            'history_words': history_words,
+            'stimmt_history_words': stimmt_history_words,
+            'falsch_history_words': falsch_history_words,
         }
         return render(request, template_name=self.template_name, context=context)
 
 
-def weight_list_generator(all_words, history=None):
+def weight_list_generator(all_words, stimmt_history=None, falsch_history=None):
     base = 1.0
-    adjust = 0
-    history_word_list = history.values_list('wort', flat=True)
-    if len(all_words) == len(history_word_list):
+    s_adjust = 0
+    f_adjust = 0
+    stimmt_history_word_list = stimmt_history.values_list('wort', flat=True)
+    falsch_history_word_list = falsch_history.values_list('wort', flat=True)
+    if len(all_words) == len(stimmt_history_word_list):
         try:
-            min_mal = history.order_by('mal').first().mal
-            adjust = min_mal
+            s_min_mal = stimmt_history.order_by('mal').first().mal
+            s_adjust = s_min_mal
+        except AttributeError:
+            pass
+    if len(all_words) == len(falsch_history_word_list):
+        try:
+            f_min_mal = stimmt_history.order_by('mal').first().mal
+            f_adjust = f_min_mal
         except AttributeError:
             pass
     for word_id in all_words:
         probability = base
-        if word_id in history_word_list:
-            probability = probability / (history.get(wort_id=word_id).mal - adjust + 1)
+        if word_id in stimmt_history_word_list:
+            probability = probability / (stimmt_history.get(wort_id=word_id).mal - s_adjust + 1)
+        elif word_id in falsch_history_word_list:
+            probability = probability * (falsch_history.get(wort_id=word_id).mal - f_adjust + 1)
         yield probability
 
 
