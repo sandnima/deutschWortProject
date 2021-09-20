@@ -51,6 +51,9 @@ class Substantiv(models.Model):
         #     self.plural = self.substantiv
         
         super().save(*args, **kwargs)
+    
+    class Meta:
+        ordering = ('substantiv',)
 
 
 class Adjektiv(models.Model):
