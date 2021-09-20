@@ -3,6 +3,7 @@
 {% url 'admin:index' as path_to_admin %}
 {% url 'worte:worte-list' as path_to_worte_list %}
 {% url 'worte:substantiv-list' as path_to_substantiv_list %}
+{% url 'worte:random' as path_to_random %}
 {% url 'worte:adjektiv-list' as path_to_adjektiv_list %}
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -21,6 +22,10 @@
                 <li>
                     <a class="nav-link {% if request.path|startswith:path_to_substantiv_list %}active{% endif %}" aria-current="page"
                        href="{{ path_to_substantiv_list }}">Substantiv</a>
+                </li>
+                <li>
+                    <a class="nav-link {% if request.path|startswith:path_to_random %}active{% endif %}" aria-current="page"
+                       href="{{ path_to_random }}">Random Substantiv</a>
                 </li>
                 <li>
                     <a class="nav-link {% if request.path|startswith:path_to_adjektiv_list %}active{% endif %}" aria-current="page"
