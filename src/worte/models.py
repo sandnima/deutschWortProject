@@ -23,6 +23,7 @@ class Substantiv(models.Model):
     substantiv = models.CharField(unique=True, max_length=250)
     artikel = models.CharField(max_length=1, choices=ARTIKEL, blank=True, null=True)
     plural = models.CharField(max_length=250, blank=True, null=True)
+    image = models.ImageField(upload_to='images/', blank=True, null=True)
     stufe = models.ForeignKey(Stufe, on_delete=models.PROTECT, blank=True, null=True)
     beispiele = models.TextField(blank=True, null=True)
     autor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
