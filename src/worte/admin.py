@@ -23,11 +23,13 @@ class SubstantivAdmin(admin.ModelAdmin):
 
 @admin.register(Substantiv)
 class SubstantivAdmin(AutoAutor):
-    list_display = ['__str__', 'stufe']
-    list_filter = ['stufe']
+    list_display = ('__str__', 'stufe')
+    list_editable = ('stufe',)
+    list_filter = ('stufe',)
 
 
 @admin.register(Adjektiv)
 class AdjektivAdmin(AutoAutor):
-    list_display = ['__str__', 'stufe']
-    list_filter = ['stufe']
+    list_display = ('__str__', 'stufe')
+    list_editable = ('stufe',)
+    list_filter = ('stufe',)
